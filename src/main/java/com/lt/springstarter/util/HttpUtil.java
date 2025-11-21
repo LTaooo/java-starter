@@ -1,10 +1,10 @@
 package com.lt.springstarter.util;
 
-import com.alibaba.nacos.shaded.com.google.gson.Gson;
 import okhttp3.HttpUrl;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 public class HttpUtil {
@@ -16,7 +16,7 @@ public class HttpUtil {
 
     public static Request.Builder postJson(String url, Map<String, Object> body) {
         return newJsonRequest(url)
-                .post(RequestBody.create(new Gson().toJson(body).getBytes()));
+                .post(RequestBody.create(Json.toJsonString(body).getBytes(StandardCharsets.UTF_8)));
     }
 
     public static Request.Builder get(String url, Map<String, String> params) {

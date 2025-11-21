@@ -1,6 +1,5 @@
 package com.lt.springstarter.util;
 
-import com.alibaba.nacos.shaded.com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -105,7 +104,7 @@ public class FeishuRobot {
      * 发送POST请求
      */
     private String postRequest(String url, Map<String, Object> data) throws Exception {
-        String jsonData = new Gson().toJson(data);
+        String jsonData = Json.toJsonString(data);
 
         RequestBody body = RequestBody.create(
                 jsonData.getBytes(StandardCharsets.UTF_8)

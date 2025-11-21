@@ -22,6 +22,12 @@ public class RabbitMQConfig {
     public static final String DLX_QUEUE = "dlx.spring-starter.queue";
     public static final String DLX_ROUTING_KEY = "dlx.spring-starter.key";
 
+
+    // 延迟队列
+    public static final String DELAY_EXCHANGE_NAME = "delay.spring-starter.exchange";
+    public static final String DELAY_QUEUE = "delay.spring-starter.queue";
+    public static final String DELAY_ROUTING_KEY = "delay.spring-starter.key";
+
     @Bean
     public MessageConverter messageConverter() {
         return new Jackson2JsonMessageConverter();
@@ -32,6 +38,14 @@ public class RabbitMQConfig {
         Queue queue = QueueBuilder.durable(DLX_QUEUE).build();
         DirectExchange exchange = new DirectExchange(DLX_EXCHANGE_NAME);
         Binding binding = BindingBuilder.bind(queue).to(exchange).with(DLX_ROUTING_KEY);
+        return new Declarables(queue, exchange, binding);
+    }
+
+    @Bean
+    public Declarables delayQueue() {
+        Queue queue = QueueBuilder.durable(DELAY_QUEUE).build();
+        DirectExchange exchange = new DirectExchange(DELAY_EXCHANGE_NAME);
+        Binding binding = BindingBuilder.bind(queue).to(exchange).with(DELAY_ROUTING_KEY);
         return new Declarables(queue, exchange, binding);
     }
 }

@@ -1,7 +1,7 @@
 package com.lt.springstarter.queue.demo;
 
 import com.lt.springstarter.config.RabbitMQConfig;
-import com.lt.springstarter.config.RabbitRetryProperties;
+import com.lt.springstarter.config.RabbitQueueRetryConfig;
 import com.lt.springstarter.queue.AbstractQueueConfig;
 import com.lt.springstarter.queue.RabbitRetryRegistry;
 import org.springframework.amqp.core.Binding;
@@ -23,6 +23,8 @@ public class DemoQueueConfig extends AbstractQueueConfig {
 
     public static final String DEMO_QUEUE_NAME = "queue.spring-starter.demo";
     public static final String DEMO_ROUTING_KEY = "key.spring-starter.demo";
+    public static final String DEMO_DELAY_QUEUE_NAME = DEMO_QUEUE_NAME + ".delay";
+    public static final String DEMO_DELAY_ROUTING_KEY = DEMO_ROUTING_KEY + ".delay";
 
     public DemoQueueConfig(RabbitRetryRegistry rabbitRetryRegistry) {
         super(rabbitRetryRegistry);
@@ -40,13 +42,24 @@ public class DemoQueueConfig extends AbstractQueueConfig {
         return new Declarables(queue, exchange, binding);
     }
 
+    @Bean
+    public Declarables demoDelayQueueDeclarables() {
+        Queue delayQueue = QueueBuilder.durable(DEMO_DELAY_QUEUE_NAME)
+                .withArgument("x-dead-letter-exchange", RabbitMQConfig.NORMAL_EXCHANGE_NAME)
+                .withArgument("x-dead-letter-routing-key", DEMO_ROUTING_KEY)
+                .build();
+        DirectExchange delayExchange = new DirectExchange(RabbitMQConfig.DELAY_EXCHANGE_NAME);
+        Binding delayBinding = BindingBuilder.bind(delayQueue).to(delayExchange).with(DEMO_DELAY_ROUTING_KEY);
+        return new Declarables(delayQueue, delayExchange, delayBinding);
+    }
+
     @Override
     protected String queueName() {
         return DEMO_QUEUE_NAME;
     }
 
     @Override
-    protected RabbitRetryProperties.QueueRetryConfig queueRetryConfig() {
+    protected RabbitQueueRetryConfig queueRetryConfig() {
         return buildRetryConfig(2, Arrays.asList(5000L, 10000L), true);
     }
 }

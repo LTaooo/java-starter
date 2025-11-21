@@ -1,6 +1,6 @@
 package com.lt.springstarter.queue;
 
-import com.lt.springstarter.config.RabbitRetryProperties;
+import com.lt.springstarter.config.RabbitQueueRetryConfig;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
@@ -14,19 +14,19 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class RabbitRetryRegistry {
 
-    private final Map<String, RabbitRetryProperties.QueueRetryConfig> queueConfigs = new ConcurrentHashMap<>();
+    private final Map<String, RabbitQueueRetryConfig> queueConfigs = new ConcurrentHashMap<>();
 
-    public void register(String queueName, RabbitRetryProperties.QueueRetryConfig config) {
+    public void register(String queueName, RabbitQueueRetryConfig config) {
         Assert.hasText(queueName, "queueName must not be blank");
         Assert.notNull(config, "queue retry config must not be null");
         queueConfigs.put(queueName, config);
     }
 
-    public RabbitRetryProperties.QueueRetryConfig get(String queueName) {
+    public RabbitQueueRetryConfig get(String queueName) {
         return queueConfigs.get(queueName);
     }
 
-    public Map<String, RabbitRetryProperties.QueueRetryConfig> getAll() {
+    public Map<String, RabbitQueueRetryConfig> getAll() {
         return Collections.unmodifiableMap(queueConfigs);
     }
 }

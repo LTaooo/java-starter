@@ -1,6 +1,6 @@
 package com.lt.springstarter.queue;
 
-import com.lt.springstarter.config.RabbitRetryProperties;
+import com.lt.springstarter.config.RabbitQueueRetryConfig;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.util.CollectionUtils;
@@ -17,7 +17,7 @@ public abstract class AbstractQueueConfig {
 
     @PostConstruct
     protected void initRetryConfig() {
-        RabbitRetryProperties.QueueRetryConfig config = queueRetryConfig();
+        RabbitQueueRetryConfig config = queueRetryConfig();
         if (config != null) {
             rabbitRetryRegistry.register(queueName(), config);
         }
@@ -31,17 +31,17 @@ public abstract class AbstractQueueConfig {
     /**
      * 子类可覆盖提供具体配置，返回 null 则表示沿用全局默认值。
      */
-    protected RabbitRetryProperties.QueueRetryConfig queueRetryConfig() {
+    protected RabbitQueueRetryConfig queueRetryConfig() {
         return null;
     }
 
     /**
      * 便捷方法，快速构造重试配置。
      */
-    protected RabbitRetryProperties.QueueRetryConfig buildRetryConfig(Integer maxRetry,
-                                                                     List<Long> delays,
-                                                                     Boolean notifyFeishu) {
-        RabbitRetryProperties.QueueRetryConfig config = new RabbitRetryProperties.QueueRetryConfig();
+    protected RabbitQueueRetryConfig buildRetryConfig(Integer maxRetry,
+                                                      List<Long> delays,
+                                                      Boolean notifyFeishu) {
+        RabbitQueueRetryConfig config = new RabbitQueueRetryConfig();
         if (maxRetry != null) {
             config.setMaxRetry(maxRetry);
         }

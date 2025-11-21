@@ -33,6 +33,12 @@ spring:
     password: test
     virtual-host: "base_vhost"
     connection-timeout: 10000
+    retry:
+      max-retry: 2
+      delays:
+        - 5000
+        - 10000
+      notify-feishu: true
     # 消费者配置
     listener:
       simple:

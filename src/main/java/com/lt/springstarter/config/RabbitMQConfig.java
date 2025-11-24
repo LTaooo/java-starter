@@ -28,6 +28,12 @@ public class RabbitMQConfig {
     public static final String DELAY_QUEUE = "delay.spring-starter.queue";
     public static final String DELAY_ROUTING_KEY = "delay.spring-starter.key";
 
+
+    // 失败队列
+    public static final String FAIL_EXCHANGE_NAME = "fail.spring-starter.exchange";
+    public static final String FAIL_QUEUE = "fail.spring-starter.queue";
+    public static final String FAIL_ROUTING_KEY = "fail.spring-starter.key";
+
     @Bean
     public MessageConverter messageConverter() {
         return new Jackson2JsonMessageConverter();
@@ -43,9 +49,22 @@ public class RabbitMQConfig {
 
     @Bean
     public Declarables delayQueue() {
-        Queue queue = QueueBuilder.durable(DELAY_QUEUE).build();
+        Queue queue = QueueBuilder.durable(DELAY_QUEUE)
+                .withArgument("x-dead-letter-exchange", DLX_EXCHANGE_NAME)
+                .withArgument("x-dead-letter-routing-key", DLX_ROUTING_KEY)
+                .build();
         DirectExchange exchange = new DirectExchange(DELAY_EXCHANGE_NAME);
         Binding binding = BindingBuilder.bind(queue).to(exchange).with(DELAY_ROUTING_KEY);
+
+        return new Declarables(queue, exchange, binding);
+    }
+
+
+    @Bean
+    public Declarables failQueue() {
+        Queue queue = QueueBuilder.durable(FAIL_QUEUE).build();
+        DirectExchange exchange = new DirectExchange(FAIL_EXCHANGE_NAME);
+        Binding binding = BindingBuilder.bind(queue).to(exchange).with(FAIL_ROUTING_KEY);
         return new Declarables(queue, exchange, binding);
     }
 }

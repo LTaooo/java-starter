@@ -7,11 +7,11 @@ import com.lt.springstarter.util.Validator;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.springframework.amqp.core.Message;
+import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * 用于承载 RabbitMQ 消息头中的重试配置。
@@ -20,42 +20,70 @@ import java.util.Objects;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class RetryHeaderConfig {
 
-    @JsonProperty(RabbitRetryHeaders.X_RETRY_COUNT)
+    public static final String X_RETRY_COUNT = "x-retry-count";
+    public static final String X_MAX_RETRY = "x-max-retry";
+    public static final String X_DELAY = "x-retry-delay";
+    public static final String X_NOTIFY_FEISHU = "x-notify-feishu";
+    public static final String X_ORIGINAL_ROUTING_KEY = "x-original-routing-key";
+    public static final String X_ORIGINAL_EXCHANGE = "x-original-exchange";
+
+    @JsonProperty(RetryHeaderConfig.X_RETRY_COUNT)
     @NotNull
     private int retryCount;
 
-    @JsonProperty(RabbitRetryHeaders.X_MAX_RETRY)
-    @NotNull
-    private Integer maxRetry;
-
-    @JsonProperty(RabbitRetryHeaders.X_DELAY)
+    @JsonProperty(RetryHeaderConfig.X_DELAY)
     @NotNull
     private List<Long> delays;
 
-    @JsonProperty(RabbitRetryHeaders.X_NOTIFY_FEISHU)
+    @JsonProperty(RetryHeaderConfig.X_NOTIFY_FEISHU)
     @NotNull
     private Boolean notifyFeishu;
 
-    @JsonProperty(RabbitRetryHeaders.X_ORIGINAL_QUEUE)
+    @JsonProperty(RetryHeaderConfig.X_ORIGINAL_ROUTING_KEY)
     @NotNull
-    private String originalQueue;
+    private String originalRoutingKey;
 
-    public static RetryHeaderConfig fromHeaders(Map<String, Object> headers) {
-        RetryHeaderConfig config = Json.toObject(Json.toJsonString(headers), RetryHeaderConfig.class);
-        Validator.check(config);
-        return Objects.requireNonNullElseGet(config, RetryHeaderConfig::new);
+    @JsonProperty(RetryHeaderConfig.X_ORIGINAL_EXCHANGE)
+    @NotNull
+    private String originalExchange;
+
+
+    public Long getMaxRetry() {
+        return (long) delays.size();
     }
 
-    public static RetryHeaderConfig fromMessage(Message message) {
+    public static @Nullable RetryHeaderConfig fromHeaders(Map<String, Object> headers) {
+        RetryHeaderConfig config = Json.toObject(Json.toJsonString(headers), RetryHeaderConfig.class);
+        if (Validator.isValid(config)) {
+            return config;
+        }
+        return null;
+    }
+
+    public static @Nullable RetryHeaderConfig fromMessage(Message message) {
         return fromHeaders(message.getMessageProperties().getHeaders());
     }
 
-    public long delayForAttempt(int attempt) {
+    public @Nullable Long delayForAttempt(int attempt) {
         if (CollectionUtils.isEmpty(delays)) {
-            throw new IllegalStateException("未找到任何重试延迟配置");
+            return null;
         }
         int index = Math.min(Math.max(attempt - 1, 0), delays.size() - 1);
         return delays.get(index);
+    }
+
+    public void toInitHeaders(Map<String, Object> headers) {
+        fillHeaders(headers);
+        headers.put(RetryHeaderConfig.X_RETRY_COUNT, 0);
+    }
+
+    public void fillHeaders(Map<String, Object> headers) {
+        headers.put(RetryHeaderConfig.X_RETRY_COUNT, retryCount);
+        headers.put(RetryHeaderConfig.X_MAX_RETRY, getMaxRetry());
+        headers.put(RetryHeaderConfig.X_DELAY, delays);
+        headers.put(RetryHeaderConfig.X_NOTIFY_FEISHU, notifyFeishu);
+        headers.put(RetryHeaderConfig.X_ORIGINAL_ROUTING_KEY, originalRoutingKey);
+        headers.put(RetryHeaderConfig.X_ORIGINAL_EXCHANGE, originalExchange);
     }
 }
 

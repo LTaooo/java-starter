@@ -1,9 +1,8 @@
 package com.lt.springstarter.queue.demo;
 
 import com.lt.springstarter.config.RabbitMQConfig;
-import com.lt.springstarter.config.RabbitQueueRetryConfig;
-import com.lt.springstarter.queue.RabbitRetryRegistry;
-import com.lt.springstarter.queue.retry.RetryHeaderSupport;
+import com.lt.springstarter.queue.retry.RabbitRetryRegistry;
+import com.lt.springstarter.queue.retry.RetryHeaderConfig;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,19 +17,19 @@ public class DemoProducer {
     private final RabbitTemplate rabbitTemplate;
     private final RabbitRetryRegistry rabbitRetryRegistry;
 
-    public DemoProducer(RabbitTemplate rabbitTemplate,
-                        RabbitRetryRegistry rabbitRetryRegistry) {
+    public DemoProducer(RabbitTemplate rabbitTemplate, RabbitRetryRegistry rabbitRetryRegistry) {
         this.rabbitTemplate = rabbitTemplate;
         this.rabbitRetryRegistry = rabbitRetryRegistry;
     }
 
     public void sendMessage(DemoMessage message) {
         rabbitTemplate.convertAndSend(RabbitMQConfig.NORMAL_EXCHANGE_NAME, DemoQueueConfig.DEMO_ROUTING_KEY, message, m -> {
-            Map<String, Object> headers = m.getMessageProperties().getHeaders();
-            RabbitQueueRetryConfig config = rabbitRetryRegistry.get(DemoQueueConfig.DEMO_QUEUE_NAME);
-            RetryHeaderSupport.ensureInitialHeaders(headers, DemoQueueConfig.DEMO_QUEUE_NAME, config);
-            return m;
-        });
+                                          Map<String, Object> headers = m.getMessageProperties().getHeaders();
+                                          RetryHeaderConfig config = rabbitRetryRegistry.get(DemoQueueConfig.DEMO_QUEUE_NAME);
+                                          config.toInitHeaders(headers);
+                                          return m;
+                                      }
+        );
     }
 
     @Data

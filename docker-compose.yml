@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  spring-starter:
+    build: .
+    image: spring-starter:latest
+    container_name: spring-starter
+    ports:
+      - "8001:8001"
+    environment:
+      - TZ=Asia/Shanghai
+      - SPRING_PROFILES_ACTIVE=dev
+      # Nacos 配置
+      - NACOS_IP=nacos
+      - NACOS_PORT=8848
+    restart: always
+

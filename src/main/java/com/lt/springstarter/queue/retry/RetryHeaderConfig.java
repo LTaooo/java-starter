@@ -23,7 +23,6 @@ public class RetryHeaderConfig {
     public static final String X_RETRY_COUNT = "x-retry-count";
     public static final String X_MAX_RETRY = "x-max-retry";
     public static final String X_DELAY = "x-retry-delay";
-    public static final String X_NOTIFY_FEISHU = "x-notify-feishu";
     public static final String X_ORIGINAL_ROUTING_KEY = "x-original-routing-key";
     public static final String X_ORIGINAL_EXCHANGE = "x-original-exchange";
 
@@ -35,10 +34,6 @@ public class RetryHeaderConfig {
     @NotNull
     private List<Long> delays;
 
-    @JsonProperty(RetryHeaderConfig.X_NOTIFY_FEISHU)
-    @NotNull
-    private Boolean notifyFeishu;
-
     @JsonProperty(RetryHeaderConfig.X_ORIGINAL_ROUTING_KEY)
     @NotNull
     private String originalRoutingKey;
@@ -46,11 +41,6 @@ public class RetryHeaderConfig {
     @JsonProperty(RetryHeaderConfig.X_ORIGINAL_EXCHANGE)
     @NotNull
     private String originalExchange;
-
-
-    public Long getMaxRetry() {
-        return (long) delays.size();
-    }
 
     public static @Nullable RetryHeaderConfig fromHeaders(Map<String, Object> headers) {
         RetryHeaderConfig config = Json.toObject(Json.toJsonString(headers), RetryHeaderConfig.class);
@@ -62,6 +52,10 @@ public class RetryHeaderConfig {
 
     public static @Nullable RetryHeaderConfig fromMessage(Message message) {
         return fromHeaders(message.getMessageProperties().getHeaders());
+    }
+
+    public Long getMaxRetry() {
+        return (long) delays.size();
     }
 
     public @Nullable Long delayForAttempt(int attempt) {
@@ -81,7 +75,6 @@ public class RetryHeaderConfig {
         headers.put(RetryHeaderConfig.X_RETRY_COUNT, retryCount);
         headers.put(RetryHeaderConfig.X_MAX_RETRY, getMaxRetry());
         headers.put(RetryHeaderConfig.X_DELAY, delays);
-        headers.put(RetryHeaderConfig.X_NOTIFY_FEISHU, notifyFeishu);
         headers.put(RetryHeaderConfig.X_ORIGINAL_ROUTING_KEY, originalRoutingKey);
         headers.put(RetryHeaderConfig.X_ORIGINAL_EXCHANGE, originalExchange);
     }

@@ -33,12 +33,6 @@ spring:
     password: test
     virtual-host: "base_vhost"
     connection-timeout: 10000
-    retry:
-      max-retry: 2
-      delays:
-        - 5000
-        - 10000
-      notify-feishu: true
     # 消费者配置
     listener:
       simple:
@@ -63,7 +57,7 @@ spring:
           max-wait: 2000ms  # 连接池最大阻塞等待时间
 
 server:
-  port: 8001
+  port: 8000
   servlet:
     context-path: /
 

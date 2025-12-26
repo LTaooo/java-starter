@@ -8,6 +8,7 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.util.Map;
 
 @Slf4j
@@ -23,33 +24,35 @@ public class DLXConsumer {
     }
 
     @RabbitListener(queues = RabbitMQConfig.DLX_QUEUE, ackMode = "MANUAL")
-    public void receive(Object payload, Channel channel, Message message) {
+    public void receive(Object payload, Channel channel, Message message) throws IOException {
         long deliveryTag = message.getMessageProperties().getDeliveryTag();
         try {
             RetryHeaderConfig headerConfig = RetryHeaderConfig.fromMessage(message);
             if (headerConfig == null) {
-                retryMessageHandler.fail(payload, message, null);
+                retryMessageHandler.fail(message, null);
+                channel.basicAck(deliveryTag, false);
                 return;
             }
 
             log.warn("死信队列开始重试。origin-routing-key={}, retry={}/{}.",
-                     headerConfig.getOriginalRoutingKey(),
-                     headerConfig.getRetryCount(),
-                     headerConfig.getMaxRetry()
+                    headerConfig.getOriginalRoutingKey(),
+                    headerConfig.getRetryCount(),
+                    headerConfig.getMaxRetry()
             );
             rabbitTemplate.convertAndSend(headerConfig.getOriginalExchange(),
-                                          headerConfig.getOriginalRoutingKey(),
-                                          payload,
-                                          msg -> {
-                                              Map<String, Object> newHeaders = msg.getMessageProperties().getHeaders();
-                                              newHeaders.putAll(message.getMessageProperties().getHeaders());
-                                              headerConfig.fillHeaders(newHeaders);
-                                              return msg;
-                                          }
+                    headerConfig.getOriginalRoutingKey(),
+                    payload,
+                    msg -> {
+                        Map<String, Object> newHeaders = msg.getMessageProperties().getHeaders();
+                        newHeaders.putAll(message.getMessageProperties().getHeaders());
+                        headerConfig.fillHeaders(newHeaders);
+                        return msg;
+                    }
             );
             channel.basicAck(deliveryTag, false);
         } catch (Exception ex) {
-            retryMessageHandler.fail(payload, message, ex);
+            retryMessageHandler.fail(message, ex);
+            channel.basicAck(deliveryTag, false);
         }
     }
 }

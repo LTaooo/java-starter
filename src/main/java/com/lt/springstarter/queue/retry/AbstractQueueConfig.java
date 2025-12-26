@@ -35,12 +35,11 @@ public abstract class AbstractQueueConfig {
     /**
      * 便捷方法，快速构造重试配置。
      */
-    protected RetryHeaderConfig buildRetryConfig(List<Long> delays, Boolean notifyFeishu) {
+    protected RetryHeaderConfig buildRetryConfig(List<Long> delays) {
         RetryHeaderConfig config = new RetryHeaderConfig();
         config.setRetryCount(0);
         config.setOriginalRoutingKey(routingKey());
         config.setDelays(delays);
-        config.setNotifyFeishu(notifyFeishu);
         config.setOriginalExchange(exchangeName());
         return config;
     }

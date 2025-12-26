@@ -65,7 +65,13 @@ server:
 decorator:
   datasource:
     p6spy:
-      enable-logging: false
+      enable-logging: true
+      multiline: false
+      log-format: "\ntime:%(executionTime) || sql:%(sql)\n"
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
 
 logging:
   level:

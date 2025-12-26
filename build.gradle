@@ -77,6 +77,8 @@ dependencies {
 
     // Lettuce pool
     implementation 'org.apache.commons:commons-pool2'
+    
+    implementation 'com.github.yulichang:mybatis-plus-join-boot-starter:1.5.5'
 }
 
 tasks.withType(JavaCompile).configureEach {

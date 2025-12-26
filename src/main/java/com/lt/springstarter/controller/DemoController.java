@@ -1,6 +1,7 @@
 package com.lt.springstarter.controller;
 
 import com.lt.springstarter.entity.vo.BookVO;
+import com.lt.springstarter.enums.ResponseCode;
 import com.lt.springstarter.model.BookModel;
 import com.lt.springstarter.queue.demo.DemoProducer;
 import com.lt.springstarter.service.BookService;
@@ -44,6 +45,9 @@ public class DemoController {
     @Operation(summary = "get book")
     public ApiResponse<BookVO> getBook(@PathVariable Integer id) {
         BookVO bookVO = bookService.getBook(id);
+        if (bookVO == null) {
+            return ApiResponse.error(ResponseCode.NOT_FOUND);
+        }
         return ApiResponse.success(bookVO);
     }
 }

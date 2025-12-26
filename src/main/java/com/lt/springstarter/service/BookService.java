@@ -1,34 +1,30 @@
 package com.lt.springstarter.service;
 
-import com.github.yulichang.toolkit.JoinWrappers;
-import com.github.yulichang.wrapper.MPJLambdaWrapper;
+import com.lt.springstarter.entity.dto.BookWithAuthorDTO;
 import com.lt.springstarter.entity.vo.BookVO;
-import com.lt.springstarter.mapper.BookMapper;
-import com.lt.springstarter.model.AuthorModel;
 import com.lt.springstarter.model.BookModel;
+import com.lt.springstarter.repository.BookRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
 @Service
 public class BookService {
-    private final BookMapper bookMapper;
+    private final BookRepository bookRepository;
 
     public BookModel createBook(String name) {
         BookModel bookModel = new BookModel();
         bookModel.setName(name);
-        int id = bookMapper.insert(bookModel);
-        bookModel.setId(id);
+        bookRepository.insert(bookModel);
         return bookModel;
     }
 
-    public BookVO getBook(Integer id) {
-        MPJLambdaWrapper<BookModel> wrapper = JoinWrappers.lambda(BookModel.class)
-                .selectAll(BookModel.class)
-                .selectAs(AuthorModel::getId, BookVO::getAuthorId)
-                .selectAs(AuthorModel::getName, BookVO::getAuthorName)
-                .leftJoin(AuthorModel.class, AuthorModel::getId, BookModel::getAuthorId)
-                .eq(BookModel::getId, id);
-        return bookMapper.selectJoinOne(BookVO.class, wrapper);
+    public @Nullable BookVO getBook(Integer id) {
+        BookWithAuthorDTO bookWithAuthorDTO = bookRepository.getBookWithAuthor(id);
+        if (bookWithAuthorDTO == null) {
+            return null;
+        }
+        return BookVO.from(bookWithAuthorDTO);
     }
 }
